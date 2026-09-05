@@ -77,3 +77,21 @@ async def export_findings_csv(scan_id: str, db: AsyncSession = Depends(get_db)):
         media_type="text/csv",
         headers={"Content-Disposition": f"attachment; filename=findings_scan_{scan_id[:8]}.csv"}
     )
+
+@router.get("/benchmark/metrics")
+async def get_benchmark_metrics():
+    """
+    Paper Section VI Evaluation Metrics Endpoint
+    Returns Table II benchmark comparison metrics.
+    """
+    try:
+        from tests.benchmark_evaluation import run_benchmark_evaluation
+        return run_benchmark_evaluation()
+    except Exception:
+        # Fallback to stored benchmark JSON if exists
+        bench_file = os.path.join(os.getcwd(), "storage", "reports", "benchmark_metrics.json")
+        if os.path.exists(bench_file):
+            with open(bench_file, "r", encoding="utf-8") as f:
+                return json.load(f)
+        return {"message": "Benchmark metrics not generated yet."}
+

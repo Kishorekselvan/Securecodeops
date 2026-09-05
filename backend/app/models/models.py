@@ -149,6 +149,7 @@ class Finding(Base):
 
     scan = relationship("Scan", back_populates="findings")
     patches = relationship("Patch", back_populates="finding", cascade="all, delete-orphan")
+    feedbacks = relationship("DeveloperFeedback", back_populates="finding", cascade="all, delete-orphan")
 
 
 class Threat(Base):
@@ -267,3 +268,19 @@ class AgentLog(Base):
     timestamp = Column(DateTime, default=datetime.datetime.utcnow)
 
     scan = relationship("Scan", back_populates="agent_logs")
+
+
+class DeveloperFeedback(Base):
+    __tablename__ = "developer_feedbacks"
+
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    finding_id = Column(String(36), ForeignKey("findings.id", ondelete="CASCADE"), nullable=True)
+    rule_id = Column(String(200), nullable=True)
+    category = Column(String(100), nullable=False)
+    file_pattern = Column(String(255), nullable=True)
+    feedback_type = Column(String(50), nullable=False)  # CONFIRMED_TRUE_POSITIVE, FALSE_POSITIVE, SUPPRESSED
+    developer_notes = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+    finding = relationship("Finding", back_populates="feedbacks")
+

@@ -2,12 +2,25 @@ import json
 from typing import Dict, Any, Optional
 from app.ai.provider import get_llm_provider
 from app.ai.prompts import VALIDATION_SYSTEM_PROMPT
+from app.analysis.learning_engine import learning_engine
 
 class FindingValidator:
     def __init__(self):
         self.provider = get_llm_provider()
 
     async def validate_finding(self, finding: Dict[str, Any], surrounding_code: str = "") -> Dict[str, Any]:
+        # 1. First consult Continuous Learning Knowledge Base (Paper Section II-B)
+        learned_match = learning_engine.check_learned_patterns(finding)
+        if learned_match:
+            return {
+                "ai_validation_status": learned_match.get("validation_status", "VALIDATED"),
+                "ai_reasoning": learned_match.get("reasoning", "Calibrated by continuous learning knowledge base."),
+                "ai_confidence": learned_match.get("confidence", 0.95),
+                "ai_severity_adjustment": "LOW" if learned_match.get("validation_status") == "FALSE_POSITIVE" else None,
+                "ai_attack_scenario": "Suppressed based on verified developer feedback." if learned_match.get("validation_status") == "FALSE_POSITIVE" else "Verified attack path reinforced by team knowledge base.",
+                "ai_remediation": finding.get("ai_remediation") or "Refer to project coding standards."
+            }
+
         user_prompt = f"""
 Analyze this security finding:
 Title: {finding.get('title')}

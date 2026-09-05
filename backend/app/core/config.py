@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     UPLOAD_DIR: str = "./storage/uploads"
     SANDBOX_DIR: str = "./storage/sandboxes"
     REPORTS_DIR: str = "./storage/reports"
+    KNOWLEDGE_BASE_DIR: str = "./storage/knowledge_base"
     
     # Upload limits
     MAX_UPLOAD_SIZE_MB: int = 50
@@ -44,3 +45,4 @@ settings = Settings()
 os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
 os.makedirs(settings.SANDBOX_DIR, exist_ok=True)
 os.makedirs(settings.REPORTS_DIR, exist_ok=True)
+os.makedirs(settings.KNOWLEDGE_BASE_DIR, exist_ok=True)

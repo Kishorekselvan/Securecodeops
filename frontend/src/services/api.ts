@@ -63,6 +63,17 @@ export const api = {
     const res = await client.patch(`/findings/${id}/status`, null, { params: { status } });
     return res.data;
   },
+  submitFindingFeedback: async (id: string, feedbackType: string, notes?: string): Promise<any> => {
+    const res = await client.post(`/findings/${id}/feedback`, {
+      feedback_type: feedbackType,
+      developer_notes: notes || ''
+    });
+    return res.data;
+  },
+  getLearningStats: async (): Promise<any> => {
+    const res = await client.get('/findings/learning/stats');
+    return res.data;
+  },
 
   // Threats
   getThreats: async (params?: Record<string, any>): Promise<Threat[]> => {
@@ -104,6 +115,10 @@ export const api = {
   // Reports
   getReport: async (scanId: string): Promise<Report> => {
     const res = await client.get(`/reports/${scanId}`);
+    return res.data;
+  },
+  getBenchmarkMetrics: async (): Promise<any> => {
+    const res = await client.get('/reports/benchmark/metrics');
     return res.data;
   },
   getPdfReportUrl: (scanId: string) => `${API_BASE}/reports/${scanId}/pdf`,

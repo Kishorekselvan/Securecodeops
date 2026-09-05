@@ -10,11 +10,22 @@ export const Reports: React.FC = () => {
   const [scans, setScans] = useState<ScanSummary[]>([]);
   const [selectedScanId, setSelectedScanId] = useState<string>('');
   const [report, setReport] = useState<Report | null>(null);
+  const [benchmarkMetrics, setBenchmarkMetrics] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadScans();
+    loadBenchmarkMetrics();
   }, []);
+
+  const loadBenchmarkMetrics = async () => {
+    try {
+      const data = await api.getBenchmarkMetrics();
+      setBenchmarkMetrics(data);
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   useEffect(() => {
     if (selectedScanId) {
@@ -199,6 +210,75 @@ export const Reports: React.FC = () => {
               </div>
             </div>
           </div>
+
+          {/* 4. Paper Evaluation & Benchmark Metrics (Table II) */}
+          {benchmarkMetrics && (
+            <div className="space-y-4 pt-4 border-t border-cyber-border">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-bold font-mono text-white flex items-center gap-2">
+                  <Network className="w-4 h-4 text-cyber-cyan" />
+                  4. RESEARCH EVALUATION & BENCHMARK SUITE (PAPER TABLE II)
+                </h3>
+                <span className="text-[10px] text-cyber-muted font-mono">
+                  Ground Truth Dataset: {benchmarkMetrics.dataset_size} samples
+                </span>
+              </div>
+
+              {/* Comparative Metrics Table */}
+              <div className="overflow-x-auto rounded-lg border border-cyber-border">
+                <table className="w-full text-left font-mono text-xs">
+                  <thead className="bg-cyber-bg text-slate-400 border-b border-cyber-border">
+                    <tr>
+                      <th className="p-3">Tool / Architecture</th>
+                      <th className="p-3">VDR (%)</th>
+                      <th className="p-3">FPR (%)</th>
+                      <th className="p-3">Precision</th>
+                      <th className="p-3">Recall</th>
+                      <th className="p-3">F1-Score</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-cyber-border/40 text-slate-200">
+                    {benchmarkMetrics.table_ii_metrics && Object.values(benchmarkMetrics.table_ii_metrics).map((m: any) => (
+                      <tr
+                        key={m.tool_name}
+                        className={m.tool_name.includes('SecureCodeOps') ? 'bg-cyber-cyan/10 font-bold text-white' : 'hover:bg-white/[0.02]'}
+                      >
+                        <td className="p-3 flex items-center gap-2">
+                          {m.tool_name.includes('SecureCodeOps') && (
+                            <span className="w-2 h-2 rounded-full bg-cyber-cyan animate-pulse" />
+                          )}
+                          {m.tool_name}
+                        </td>
+                        <td className="p-3 text-cyber-green">{m.vdr_percent}%</td>
+                        <td className="p-3 text-cyber-purple">{m.fpr_percent}%</td>
+                        <td className="p-3">{m.precision}</td>
+                        <td className="p-3">{m.recall}</td>
+                        <td className="p-3 text-cyber-cyan">{m.f1_score}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Target Achievement Matrix */}
+              {benchmarkMetrics.target_comparison && (
+                <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2 font-mono text-xs">
+                  {Object.entries(benchmarkMetrics.target_comparison).map(([metric, data]: [string, any]) => (
+                    <div key={metric} className="p-2.5 rounded-lg bg-cyber-bg/80 border border-cyber-border text-center">
+                      <span className="text-[10px] text-slate-400 block font-bold">{metric}</span>
+                      <span className="text-xs font-bold text-cyber-cyan block mt-0.5">{data.achieved}</span>
+                      <span className="text-[9px] text-cyber-green block mt-0.5">Target {data.target}</span>
+                      <span className={`inline-block px-1.5 py-0.2 rounded text-[9px] mt-1 font-bold ${
+                        data.met ? 'bg-cyber-green/20 text-cyber-green' : 'bg-cyber-red/20 text-cyber-red'
+                      }`}>
+                        {data.met ? 'PASSED' : 'UNMET'}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       ) : (
         <div className="p-12 text-center text-xs text-slate-500 font-mono glass-panel rounded-xl">

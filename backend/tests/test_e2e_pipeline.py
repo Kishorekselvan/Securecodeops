@@ -1,8 +1,9 @@
 import os
 import pytest
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from app.db.session import Base
-from app.models.models import Repository, Scan
+from app.models.models import Repository, Scan, Report
 from app.agents.supervisor import SupervisorAgent
 
 @pytest.mark.asyncio
@@ -47,5 +48,14 @@ async def test_full_e2e_scan_pipeline():
         assert scan.critical_count > 0
         assert scan.security_score < 100.0  # Penalties applied correctly
         assert scan.duration_seconds > 0.0
+
+        # 5. Verify Report and PDF Generation
+        report_stmt = select(Report).where(Report.scan_id == scan.id)
+        report_res = await session.execute(report_stmt)
+        report = report_res.scalar_one_or_none()
+        assert report is not None
+        assert report.title is not None
+        assert report.pdf_path is not None
+        assert os.path.exists(report.pdf_path)
 
     await test_engine.dispose()

@@ -93,6 +93,31 @@ class FindingOut(FindingBase):
     class Config:
         from_attributes = True
 
+# --- Developer Feedback Schemas (Paper Section II-B) ---
+class DeveloperFeedbackCreate(BaseModel):
+    feedback_type: str  # CONFIRMED_TRUE_POSITIVE, FALSE_POSITIVE, SUPPRESSED
+    developer_notes: Optional[str] = None
+
+class DeveloperFeedbackOut(BaseModel):
+    id: str
+    finding_id: Optional[str]
+    rule_id: Optional[str]
+    category: str
+    file_pattern: Optional[str]
+    feedback_type: str
+    developer_notes: Optional[str]
+    created_at: datetime.datetime
+
+    class Config:
+        from_attributes = True
+
+class ContinuousLearningStatsOut(BaseModel):
+    total_feedbacks: int
+    false_positives_learned: int
+    confirmed_exploits_learned: int
+    suppressed_pattern_count: int
+    confirmed_pattern_count: int
+
 # --- Threat Schemas ---
 class ThreatBase(BaseModel):
     category: str

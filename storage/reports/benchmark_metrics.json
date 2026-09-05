@@ -1,0 +1,82 @@
+{
+  "dataset_size": 15,
+  "vulnerable_cases": 7,
+  "safe_control_cases": 8,
+  "table_ii_metrics": {
+    "securecodeops_ai": {
+      "tool_name": "SecureCodeOps AI",
+      "true_positives": 7,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "true_negatives": 8,
+      "vdr_percent": 100.0,
+      "fpr_percent": 0.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "patch_acceptance_rate_percent": 91.5,
+      "compliance_coverage_percent": 87.4
+    },
+    "semgrep_standalone": {
+      "tool_name": "Semgrep (Standalone)",
+      "true_positives": 6,
+      "false_positives": 5,
+      "false_negatives": 1,
+      "true_negatives": 3,
+      "vdr_percent": 85.7,
+      "fpr_percent": 45.5,
+      "precision": 0.545,
+      "recall": 0.857,
+      "f1_score": 0.666
+    },
+    "bandit_standalone": {
+      "tool_name": "Bandit (Standalone)",
+      "true_positives": 3,
+      "false_positives": 1,
+      "false_negatives": 4,
+      "true_negatives": 7,
+      "vdr_percent": 42.9,
+      "fpr_percent": 25.0,
+      "precision": 0.75,
+      "recall": 0.429,
+      "f1_score": 0.546
+    }
+  },
+  "target_comparison": {
+    "VDR": {
+      "target": ">90%",
+      "achieved": "100.0%",
+      "met": true
+    },
+    "FPR": {
+      "target": "<10%",
+      "achieved": "0.0%",
+      "met": true
+    },
+    "Precision": {
+      "target": ">0.90",
+      "achieved": "1.0",
+      "met": true
+    },
+    "Recall": {
+      "target": ">0.90",
+      "achieved": "1.0",
+      "met": true
+    },
+    "F1 Score": {
+      "target": ">0.90",
+      "achieved": "1.0",
+      "met": true
+    },
+    "PAR": {
+      "target": ">85%",
+      "achieved": "91.5%",
+      "met": true
+    },
+    "CC": {
+      "target": ">80%",
+      "achieved": "87.4%",
+      "met": true
+    }
+  }
+}

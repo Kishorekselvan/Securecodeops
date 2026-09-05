@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   AlertTriangle, Search, Filter, Cpu, ShieldCheck, ShieldAlert,
-  FileCode, ExternalLink, GitPullRequest, CheckCircle2, XCircle, Info
+  FileCode, ExternalLink, GitPullRequest, CheckCircle2, XCircle, Info,
+  BookOpen, ThumbsUp, ThumbsDown, Sparkles
 } from 'lucide-react';
 import { api } from '../services/api';
 import { Finding } from '../types';
@@ -17,10 +18,42 @@ export const Findings: React.FC = () => {
   const [scannerFilter, setScannerFilter] = useState('');
   const [aiFilter, setAiFilter] = useState('');
   const [selectedFinding, setSelectedFinding] = useState<Finding | null>(null);
+  const [learningStats, setLearningStats] = useState<any>(null);
+  const [feedbackSuccess, setFeedbackSuccess] = useState<string | null>(null);
 
   useEffect(() => {
     loadFindings();
+    loadLearningStats();
   }, [severityFilter, categoryFilter, scannerFilter, aiFilter]);
+
+  const loadLearningStats = async () => {
+    try {
+      const stats = await api.getLearningStats();
+      setLearningStats(stats);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleFeedback = async (findingId: string, feedbackType: string, notes?: string) => {
+    try {
+      await api.submitFindingFeedback(findingId, feedbackType, notes);
+      setFeedbackSuccess(`Feedback '${feedbackType}' registered into Continuous Learning Knowledge Base!`);
+      // Refresh findings and stats
+      await loadFindings();
+      await loadLearningStats();
+      if (selectedFinding && selectedFinding.id === findingId) {
+        setSelectedFinding(prev => prev ? {
+          ...prev,
+          status: feedbackType === 'FALSE_POSITIVE' ? 'FALSE_POSITIVE' : feedbackType === 'SUPPRESSED' ? 'SUPPRESSED' : 'OPEN',
+          ai_validation_status: feedbackType === 'FALSE_POSITIVE' ? 'FALSE_POSITIVE' : 'VALIDATED'
+        } : null);
+      }
+      setTimeout(() => setFeedbackSuccess(null), 4000);
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   const loadFindings = async () => {
     setLoading(true);
@@ -51,12 +84,33 @@ export const Findings: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-white tracking-tight">Security Vulnerabilities & Findings</h1>
-        <p className="text-xs text-slate-400 font-mono mt-1">
-          Normalized findings from deterministic scanners coupled with AI exploitability validation
-        </p>
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-white tracking-tight">Security Vulnerabilities & Findings</h1>
+          <p className="text-xs text-slate-400 font-mono mt-1">
+            Normalized findings from deterministic scanners coupled with AI exploitability validation
+          </p>
+        </div>
+
+        {learningStats && (
+          <div className="flex items-center gap-3 bg-cyber-purple/10 border border-cyber-purple/30 rounded-xl px-3.5 py-2 text-xs font-mono">
+            <BookOpen className="w-4 h-4 text-cyber-purple shrink-0" />
+            <div>
+              <span className="text-white font-bold">Continuous Learning Knowledge Base: </span>
+              <span className="text-cyber-muted">
+                {learningStats.total_feedbacks} feedbacks recorded ({learningStats.false_positives_learned} FP rules suppressed, {learningStats.confirmed_exploits_learned} confirmed)
+              </span>
+            </div>
+          </div>
+        )}
       </div>
+
+      {feedbackSuccess && (
+        <div className="p-3 rounded-lg bg-cyber-green/10 border border-cyber-green/30 text-cyber-green text-xs font-mono flex items-center gap-2">
+          <CheckCircle2 className="w-4 h-4 shrink-0" />
+          <span>{feedbackSuccess}</span>
+        </div>
+      )}
 
       {/* Filter Bar */}
       <div className="p-4 rounded-xl glass-panel border border-cyber-border/80 flex flex-wrap items-center gap-3">
@@ -262,6 +316,45 @@ export const Findings: React.FC = () => {
                 <p className="text-xs text-slate-300 leading-relaxed">
                   {selectedFinding.ai_remediation || 'Apply parameterized inputs, context-aware output encoding, or secret isolation.'}
                 </p>
+              </div>
+
+              {/* Developer Feedback & Continuous Learning Module (Paper Sec II-B) */}
+              <div className="p-4 rounded-xl bg-cyber-bg/90 border border-cyber-border space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xs font-bold text-slate-200 font-mono flex items-center gap-2">
+                    <BookOpen className="w-4 h-4 text-cyber-cyan" />
+                    DEVELOPER FEEDBACK (CONTINUOUS LEARNING)
+                  </h3>
+                  <span className="text-[10px] text-cyber-muted font-mono">Paper Sec II-B & III-A</span>
+                </div>
+                <p className="text-[11px] text-slate-400 font-mono leading-relaxed">
+                  Submit feedback to calibrate future scans. Marking as False Positive adds this pattern to the local knowledge base to suppress false alarms across your repository.
+                </p>
+                <div className="flex flex-wrap items-center gap-2 pt-1">
+                  <button
+                    onClick={() => handleFeedback(selectedFinding.id, 'FALSE_POSITIVE', 'Flagged as FP by developer review')}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyber-purple/20 hover:bg-cyber-purple/30 border border-cyber-purple/40 text-cyber-purple text-xs font-mono font-medium transition-all"
+                  >
+                    <ThumbsDown className="w-3.5 h-3.5" />
+                    <span>Mark False Positive</span>
+                  </button>
+
+                  <button
+                    onClick={() => handleFeedback(selectedFinding.id, 'CONFIRMED_TRUE_POSITIVE', 'Verified exploit path')}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyber-red/20 hover:bg-cyber-red/30 border border-cyber-red/40 text-cyber-red text-xs font-mono font-medium transition-all"
+                  >
+                    <ThumbsUp className="w-3.5 h-3.5" />
+                    <span>Confirm Exploit</span>
+                  </button>
+
+                  <button
+                    onClick={() => handleFeedback(selectedFinding.id, 'SUPPRESSED', 'Rule suppressed by policy')}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 text-xs font-mono font-medium transition-all"
+                  >
+                    <XCircle className="w-3.5 h-3.5" />
+                    <span>Suppress Finding</span>
+                  </button>
+                </div>
               </div>
             </>
           ) : (
