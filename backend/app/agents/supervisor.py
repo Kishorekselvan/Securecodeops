@@ -1,4 +1,5 @@
 import os
+import uuid
 import time
 import datetime
 from typing import Dict, Any, List
@@ -136,8 +137,10 @@ class SupervisorAgent:
             
             # Save findings
             for f in all_findings:
+                fid = str(uuid.uuid4())
+                f["id"] = fid  # Keep in dict for patch agent and threats reference
                 finding_rec = Finding(
-                    id=f.get("id"),
+                    id=fid,
                     scan_id=scan_id,
                     title=f["title"],
                     description=f["description"],

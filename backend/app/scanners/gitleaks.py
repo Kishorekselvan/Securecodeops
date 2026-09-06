@@ -127,9 +127,8 @@ class GitLeaksScanner(BaseScanner):
 
     def _run_entropy_secret_scan(self, target_dir: str) -> List[Dict[str, Any]]:
         findings = []
-        for root, _, files in os.walk(target_dir):
-            if any(ignore in root for ignore in ['.git', 'node_modules', '__pycache__', '.venv', 'dist', 'build', 'storage']):
-                continue
+        for root, dirs, files in os.walk(target_dir):
+            dirs[:] = [d for d in dirs if d not in ['.git', 'node_modules', '__pycache__', '.venv', 'dist', 'build']]
             for file in files:
                 ext = os.path.splitext(file)[1].lower()
                 if ext in ['.png', '.jpg', '.jpeg', '.gif', '.ico', '.pdf', '.zip', '.tar', '.gz', '.db', '.sqlite']:

@@ -25,7 +25,7 @@ class FindingNormalizer:
                 else:
                     sev = "LOW"
 
-            finding_id = f.get("id") or str(uuid.uuid4())
+            finding_id = str(uuid.uuid4())
 
             normalized = {
                 "id": finding_id,

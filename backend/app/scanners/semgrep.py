@@ -163,9 +163,8 @@ class SemgrepScanner(BaseScanner):
 
     def _run_deterministic_rules(self, target_dir: str) -> List[Dict[str, Any]]:
         findings = []
-        for root, _, files in os.walk(target_dir):
-            if any(ignore in root for ignore in ['.git', 'node_modules', '__pycache__', '.venv', 'dist', 'build']):
-                continue
+        for root, dirs, files in os.walk(target_dir):
+            dirs[:] = [d for d in dirs if d not in ['.git', 'node_modules', '__pycache__', '.venv', 'dist', 'build']]
             for file in files:
                 ext = os.path.splitext(file)[1].lower()
                 file_path = os.path.join(root, file)
